@@ -208,7 +208,15 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
     this.productCode = builder.getProductCode
     this.serialNumber = builder.getSerialNumber
     this.connectorTypes = builder.getConnectorTypes
-    // Adds Connectors equivalent to the ConnectorTypes to the device.
+    createConnectorList(connectorTypes)
+  }
+
+
+  /** Adds Connectors equivalent to the ConnectorTypes to the device.
+    *
+    * @param connectorTypes connector types to convert to connectors
+    */
+  private def createConnectorList(connectorTypes: List[Connector.Type.Value]): Unit = {
     var index: Int = -1
     for (connType <- connectorTypes) {
       connectors = connectors ::: List(new Connector(this, {index += 1; index}, connType))

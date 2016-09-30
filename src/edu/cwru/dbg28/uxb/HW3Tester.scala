@@ -133,7 +133,7 @@ object HW3Tester {
     testCommunications(deviceList, messageList)
   }
 
-  // Helper method to test communications for a list of Devices and Messages
+  // Broadcast: Helper method to test communications for a list of Devices and Messages
   private def testCommunications(devList: List[Device], messList: List[Message]): Unit = {
     // Specific method for sending one of each message to one of each concrete device
     def broadcast(): Unit = {
@@ -167,7 +167,6 @@ object HW3Tester {
 
     // Checking the communication and connectivity of two a SisterPrinter and a GoAmateur
     d1.getConnector(0).setPeer(d2.getConnector(0))
-    d2.getConnector(0).setPeer(d1.getConnector(0)) // By the HW Instructions, setPeer is one way, should it be both?
     assert(d2.isReachable(d1)) // check to see if they are reachable by each other.
     assert(d1.isReachable(d2), println(d1.isReachable(d2))) // check the reverse
 

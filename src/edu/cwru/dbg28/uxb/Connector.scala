@@ -31,13 +31,25 @@ final class Connector(private val device: Device, private val index: Integer, pr
     */
   def getPeer: Option[Connector] = peer
 
-  /** Sets peer of this connector
+  /** Sets peer of this connector to input
+    * Sets peer of peer to this
     *
     * @param peer the connector to set as this connector's peer
     */
   @throws(classOf[ConnectionException]) // if peer already exists, if peer type = input type, or makes a loop
   @throws(classOf[NullPointerException]) //  if connector is null
   def setPeer(peer: Connector): Unit = {
+    validatePeer(peer)
+    peer.validatePeer(this)
+    this.peer = Option(peer)
+    peer.peer = Option(this)
+  }
+
+  /** Validates the proposed peer of this connector
+    *
+    * @param peer the proposed peer to set
+    */
+  def validatePeer(peer: Connector): Unit = {
     if (Option(peer).isEmpty) {
       throw new NullPointerException
     }
@@ -50,8 +62,8 @@ final class Connector(private val device: Device, private val index: Integer, pr
     if (getDevice.isReachable(peer.getDevice)) {
       throw new ConnectionException(ConnectionException.ErrorCode.CONNECTOR_CYCLE, this)
     }
-    else {
-      this.peer = Option(peer)
+    else{
+      // Validation succeeded, nothing should happen
     }
   }
 
@@ -67,17 +79,6 @@ final class Connector(private val device: Device, private val index: Integer, pr
     */
   def getDevice: Device = device
 
- /* /** Gets the location status of the object
-    *
-    * @return if the object is located
-    */
-  def getLocation: Location.Value = location
-
-  /** Sets the location status of the object
-    *
-    */
-  def setLocation(value: Location.Value): Unit = this.location = value
-*/
   /** Determines if a device is reachable by this connector's device
     *
     * @param device the device to check if is reachable
