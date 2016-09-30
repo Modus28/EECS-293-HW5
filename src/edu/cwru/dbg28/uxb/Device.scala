@@ -100,11 +100,4 @@ trait Device {
   /** Sets the location status of the object
     *
     */
-  def getLocation: Location.Value
-
-  /** Sets the location status of the object
-    *
-    * @param location the location to set to
-    */
-  def setLocation(location: Location.Value): Unit
 }

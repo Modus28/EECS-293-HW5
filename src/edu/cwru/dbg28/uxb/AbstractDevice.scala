@@ -16,7 +16,6 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
   private var connectors: List[Connector] = List[Connector]()
   private var connectorTypes: List[Connector.Type.Value] = Nil
   private var version: Int = -1
-  private var location: Location.Value = Location.NOTFOUND 
 
   // Methods
 
@@ -106,7 +105,7 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
     checkValid(message, getConnector(conIndex), this)
     val peer: Option[Connector] = getConnector(conIndex).getPeer
     if(peer.isDefined) {
-      peer.get.getDevice.recv(message, peer.get) // getConnector(conIndex).getPeer.get => variable
+      peer.get.getDevice.recv(message, peer.get)
     }
   }
 
@@ -147,32 +146,20 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
     *
     * @return Set of reachable devices
     */
-  override def reachableDevices: Set[Device] = {
-    val reachableDevices = deviceFinder(peerDevices, Location.FOUND)
-    resetLocationStates()
-    reachableDevices
-  }
+  override def reachableDevices: Set[Device] = deviceFinder(peerDevices)
 
-  /** Resets all device and connector locations to not found
-    * todo For HW4: Use a hashset to record 'found' items in O(1) time, to reduce side-effects
-    */
-  private def resetLocationStates(): Unit = {
-    deviceFinder(peerDevices,Location.NOTFOUND)
-  }
 
   /** Recursive method to get all devices directly and indirectly accessible from a set of devices
     * Sets all devices to the location status of the location parameter
     * Tail Recursive, breadth first search
     *
-    * @param locationToSet the location status to incrementally set all objects to
     * @param devices the set of devices to search
     * @return the set of all accessible devices
     */
-  private def deviceFinder(devices: Set[Device], locationToSet: Location.Value): Set[Device] = {
+  private def deviceFinder(devices: Set[Device]): Set[Device] = {
     @tailrec
     def subLoop(deviceSet: Set[Device], accumulator: Set[Device]): Set[Device] = {
-      deviceSet.foreach(_.setLocation(locationToSet))
-      val temp: Set[Device] = peerDevicesWithFilter(deviceSet, (x: Location.Value) => !x.equals(locationToSet))
+      val temp: Set[Device] = filteredPeers(deviceSet, (x: Device) => !accumulator.contains(x))
       if (temp.isEmpty) {
         accumulator
       }
@@ -190,7 +177,7 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
     */
   override def isReachable(device: Device): Boolean = {
     @tailrec
-    def subLoop(devicesInLoop: Set[Device]): Boolean = {
+    def subLoop(devicesInLoop: Set[Device], accumulator: Set[Device]): Boolean = {
       if (devicesInLoop.contains(device)){
         true
       }
@@ -198,13 +185,10 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
         false
       }
       else {
-        devicesInLoop.foreach(_.setLocation(Location.FOUND))
-         subLoop(peerDevicesWithFilter(devicesInLoop, (x: Location.Value) => x.equals(Location.NOTFOUND)))
+         subLoop(filteredPeers(devicesInLoop, (x: Device) => !accumulator.contains(x)), accumulator ++ devicesInLoop)
       }
     }
-    val reachable = subLoop(this.peerDevices + this)
-    resetLocationStates()
-    reachable
+    subLoop(this.peerDevices + this, Set[Device]())
   }
 
   /** Gets the peer devices of all devices in a set, filters them based on a function parameter
@@ -213,8 +197,8 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
     * @param f the function to filter by
     * @return devices that pass the filter function
     */
-  private def peerDevicesWithFilter(devicesToFilter: Set[Device], f: Location.Value => Boolean): Set[Device] = {
-    for (dev <- devicesToFilter ; q <- dev.peerDevices if f(q.getLocation)) yield q
+  private def filteredPeers(devicesToFilter: Set[Device], f: Device => Boolean): Set[Device] = {
+    for (dev <- devicesToFilter ; q <- dev.peerDevices if f(q)) yield q
   }
 
   // Constructor -  Initializes class with builder input
@@ -230,17 +214,6 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
       connectors = connectors ::: List(new Connector(this, {index += 1; index}, connType))
     }
   }
-
-  /** Gets the location status of the object
-    *
-    * @return if the object is located
-    */
-  def getLocation: Location.Value = this.location
-
-  /** Sets the location status of the object
-    *
-    */
-  def setLocation(location: Location.Value): Unit = this.location = location
 }
 
 // Companion object with Builder
