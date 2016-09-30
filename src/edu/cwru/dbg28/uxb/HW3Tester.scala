@@ -147,7 +147,7 @@ object HW3Tester {
           }
         }
       }
-      assert(stream.toString().length > 330) // Verifies the STDOUT against known length, can't be specific due to OS
+      assert(stream.toString().length > 245) // Verifies the STDOUT length, can't be specific due to OS differences
       stream.flush()
     }
     broadcast()
@@ -176,7 +176,7 @@ object HW3Tester {
       d2.communicate(0, new BinaryMessage(DEFAULT_BINARY_MESSAGE))
     }
     assert(stream.toString().contains("Sister printer has printed the string: parser 1")) // Check Device 1
-    assert(stream.toString().contains("GoAmateur is not yet active: 1111")) // Check Device 2
+    assert(stream.toString().contains("Sister printer has printed the binary message")) // Check Device 2's Forwarder
     println("Unit testing for UXB Communications Completed with no errors")
   }
 }

@@ -10,7 +10,7 @@ package edu.cwru.dbg28.uxb
 class GoAmateur[A <: AbstractDevice.Builder[A]](builder: GoAmateur.Builder[A]) extends AbstractVideo[A](builder) {
   // Fields
   private final val STRINGMESSAGE_HEADER = "GoAmateur does not understand string messages: "
-  private final val BINARYMESSAGE_HEADER = "GoAmateur is not yet active: "
+  // private final val BINARYMESSAGE_HEADER = "GoAmateur is not yet active: " // Deprecated
 
   // Methods
 
@@ -32,8 +32,9 @@ class GoAmateur[A <: AbstractDevice.Builder[A]](builder: GoAmateur.Builder[A]) e
     */
   override def recv(message: BinaryMessage, connector: Connector): Unit = {
     checkValid(message, connector, this)
-    val s = BINARYMESSAGE_HEADER + message.getValue
-    println(s)
+    for(index <- getConnectors.indices){
+      communicate(index, new BinaryMessage(293))
+    }
   }
 }
 

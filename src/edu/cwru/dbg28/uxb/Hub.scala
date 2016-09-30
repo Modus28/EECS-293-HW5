@@ -11,8 +11,8 @@ import edu.cwru.dbg28.uxb.DeviceClass.DeviceClass
   */
 class Hub[A <: AbstractDevice.Builder[A]] private(builder: Hub.Builder[A]) extends AbstractDevice[A](builder) {
   // Fields
-  private final val STRINGMESSAGE_HEADER = "recv not yet supported"
-  private final val BINARYMESSAGE_HEADER = "recv not yet supported"
+  // private final val STRINGMESSAGE_HEADER = "recv not yet supported" // Deprecated
+  // private final val BINARYMESSAGE_HEADER = "recv not yet supported" // Deprecated
 
   // Methods
 
@@ -23,24 +23,35 @@ class Hub[A <: AbstractDevice.Builder[A]] private(builder: Hub.Builder[A]) exten
   override def getDeviceClass: DeviceClass = DeviceClass.HUB
 
 
-  /** Receives a StringMessage and logs the appropriate response
+  /** Receives a StringMessage forwards it to all other devices
     *
     * @param message   the StringMessage to send
     * @param connector the connector sending the message
     */
   override def recv(message: StringMessage, connector: Connector): Unit = {
-    checkValid(message, connector, this)
-    println(STRINGMESSAGE_HEADER)
+    forwardMessages(message, connector)
   }
 
-  /** Receives a BinaryMessage and logs the appropriate response
+  /** Receives a BinaryMessage and forwards it to all other devices
     *
     * @param message   the BinaryMessage to send
     * @param connector the connector sending the message
     */
   override def recv(message: BinaryMessage, connector: Connector): Unit = {
+    forwardMessages(message, connector)
+  }
+
+  /** Forward any message to all the Hub's direct peers, except the sender.
+    *
+    * @param message message to forward
+    * @param connector the connector on which the message came from
+    */
+  def forwardMessages(message: Message, connector: Connector): Unit = {
     checkValid(message, connector, this)
-    println(BINARYMESSAGE_HEADER)
+    for {
+      index <- getConnectors.indices
+      if !getConnector(index).equals(connector)
+    } communicate(index, message)
   }
 }
 
