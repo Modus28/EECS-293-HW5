@@ -20,6 +20,7 @@ object HW3Tester {
   private final val FAIL = false
   private final val PASS = true
 
+  // Methods
 
   // Calls the tester methods on execution
   def main(args: Array[String]): Unit = {
@@ -180,12 +181,10 @@ object HW3Tester {
     }
     assert(stream.toString().contains("Sister printer has printed the string: parser 4")) // Check Device 1
     assert(stream.toString().contains("Sister printer has printed the binary message")) // Check Device 2's Forwarder
-    println("Unit testing for UXB Communications Completed with no errors")
+    println("Unit testing for basic UXB Communications Completed with no errors")
   }
 
-  /** Tests the entire UXB system as a whole
-    * Sends all message types through each Device Type
-    */
+  // Tests the entire UXB system as a whole
   private def testUXBSystem(): Unit = {
     // Create Devices, Unconnected
     val hubLeft = getDefaultDevices(3)
@@ -237,6 +236,6 @@ object HW3Tester {
       the Left CannonPrinter receives the BinaryMessage (1000) and prints it times its SerialNumber (1000*4)
      */
     hubLeft.recv(bMessage, hubLeft.getConnector(3))
-    println("\nUnit testing for UXB Full System Messaging completed with no errors")
+    println("\nUnit testing for large scale UXB System Messaging completed with no errors")
   }
 }

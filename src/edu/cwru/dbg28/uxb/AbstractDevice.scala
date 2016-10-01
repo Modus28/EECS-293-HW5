@@ -159,7 +159,7 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
   private def deviceFinder(devices: Set[Device]): Set[Device] = {
     @tailrec
     def subLoop(deviceSet: Set[Device], accumulator: Set[Device]): Set[Device] = {
-      val temp: Set[Device] = filteredPeers(deviceSet, (x: Device) => !accumulator.contains(x))
+      val temp: Set[Device] = getFilteredPeers(deviceSet, (x: Device) => !accumulator.contains(x))
       if (temp.isEmpty) {
         accumulator
       }
@@ -185,7 +185,7 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
         false
       }
       else {
-         subLoop(filteredPeers(devicesInLoop, (x: Device) => !accumulator.contains(x)), accumulator ++ devicesInLoop)
+         subLoop(getFilteredPeers(devicesInLoop, (x: Device) => !accumulator.contains(x)), accumulator ++ devicesInLoop)
       }
     }
     subLoop(this.peerDevices + this, Set[Device]())
@@ -197,7 +197,7 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
     * @param f the function to filter by
     * @return devices that pass the filter function
     */
-  private def filteredPeers(devicesToFilter: Set[Device], f: Device => Boolean): Set[Device] = {
+  private def getFilteredPeers(devicesToFilter: Set[Device], f: Device => Boolean): Set[Device] = {
     for (dev <- devicesToFilter ; q <- dev.peerDevices if f(q)) yield q
   }
 
