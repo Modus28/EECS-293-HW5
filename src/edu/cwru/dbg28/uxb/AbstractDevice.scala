@@ -217,9 +217,23 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
     * @param connectorTypes connector types to convert to connectors
     */
   private def createConnectorList(connectorTypes: List[Connector.Type.Value]): Unit = {
-    var index: Int = -1
-    for (connType <- connectorTypes) {
-      connectors = connectors ::: List(new Connector(this, {index += 1; index}, connType))
+    for(index <- connectorTypes.indices){
+      connectors = connectors ::: List(new Connector(this, index, connectorTypes(index)))
+    }
+  }
+
+  /** Simplified tool for connecting two devices
+    *
+    * @param device the device to connect to this
+    * @param thisConnectorIndex the index of this device's connector to connect with
+    * @param oppositeConnectorIndex the index of the input device's connector to connect with
+    */
+  def connect(device: Device, thisConnectorIndex: Int, oppositeConnectorIndex: Int): Unit ={
+    if (!(this.getConnectors.indices.contains(thisConnectorIndex) && device.getConnectors.indices.contains(oppositeConnectorIndex))) {
+      throw new IllegalArgumentException("You have chosen invalid connector indexes")
+    }
+    else {
+      this.getConnector(thisConnectorIndex).setPeer(device.getConnector(oppositeConnectorIndex))
     }
   }
 }

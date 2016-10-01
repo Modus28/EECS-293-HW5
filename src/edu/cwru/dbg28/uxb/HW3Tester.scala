@@ -10,12 +10,13 @@ package edu.cwru.dbg28.uxb
 object HW3Tester {
   // Final fields for testing
   private final val DEFAULT_PRODUCT_CODE = Option(9)
-  private final val DEFAULT_SERIAL_NUMBER = Option(BigInt(1))
+  private final val DEFAULT_SERIAL_NUMBER = Option(BigInt(4))
   private final val DEFAULT_VERSION = 13
-  private final val DEFAULT_CONNECTOR_TYPES_HUB = List(Connector.Type.COMPUTER, Connector.Type.PERIPHERAL)
-  private final val DEFAULT_CONNECTOR_TYPES_PERIPHERAL = List(Connector.Type.PERIPHERAL)
+  private final val DEFAULT_CONNECTOR_TYPES_HUB = List(Connector.Type.COMPUTER,
+    Connector.Type.COMPUTER, Connector.Type.COMPUTER, Connector.Type.PERIPHERAL)
+  private final val DEFAULT_CONNECTOR_TYPES_PERIPHERAL = List(Connector.Type.PERIPHERAL, Connector.Type.PERIPHERAL)
   private final val DEFAULT_STRING_MESSAGE = "parser"
-  private final val DEFAULT_BINARY_MESSAGE = 1111
+  private final val DEFAULT_BINARY_MESSAGE = 1000
   private final val FAIL = false
   private final val PASS = true
 
@@ -26,6 +27,7 @@ object HW3Tester {
     connectorTest()
     genericDeviceTester(getDefaultDevices)
     communicationDeviceSetup(getDefaultDevices)
+    testUXBSystem()
   }
 
   // Tests all devices with genericDeviceHelper method
@@ -106,6 +108,7 @@ object HW3Tester {
   }
 
   // Gets a List of each concrete devices initialized to default parameters
+  // Indexes of return List: 0: CannonPrinter, 1: GoAmateur, 2: SisterPrinter, 3: Hub
   private def getDefaultDevices[A <: AbstractDevice.Builder[A]]: List[AbstractDevice[Nothing]] = {
     val listOfConcreteDeviceBuilders = List(new CannonPrinter.Builder(DEFAULT_VERSION),
       new GoAmateur.Builder(DEFAULT_VERSION), new SisterPrinter.Builder(DEFAULT_VERSION),
@@ -175,8 +178,65 @@ object HW3Tester {
       d1.communicate(0, new StringMessage(DEFAULT_STRING_MESSAGE))
       d2.communicate(0, new BinaryMessage(DEFAULT_BINARY_MESSAGE))
     }
-    assert(stream.toString().contains("Sister printer has printed the string: parser 1")) // Check Device 1
+    assert(stream.toString().contains("Sister printer has printed the string: parser 4")) // Check Device 1
     assert(stream.toString().contains("Sister printer has printed the binary message")) // Check Device 2's Forwarder
     println("Unit testing for UXB Communications Completed with no errors")
+  }
+
+  /** Tests the entire UXB system as a whole
+    * Sends all message types through each Device Type
+    */
+  private def testUXBSystem(): Unit = {
+    // Create Devices, Unconnected
+    val hubLeft = getDefaultDevices(3)
+    val hubRight = getDefaultDevices(3)
+    val webCamCenter = getDefaultDevices(1)
+    val sisterPrinterLeft = getDefaultDevices(2)
+    val sisterPrinterRight = getDefaultDevices(2)
+    val cannonPrinterLeft = getDefaultDevices.head
+    // Create Messages
+    val bMessage = new BinaryMessage(DEFAULT_BINARY_MESSAGE)
+    val sMessage = new StringMessage(DEFAULT_STRING_MESSAGE)
+    // Connect Devices in legal format.
+    hubLeft.connect(webCamCenter, 0, 0)
+    hubRight.connect(webCamCenter, 0, 1)
+    hubLeft.connect(sisterPrinterLeft, 1, 0)
+    hubLeft.connect(cannonPrinterLeft, 2, 0)
+    hubRight.connect(sisterPrinterRight, 1, 0)
+    // Message Send Scenario 1: HubLeft Broadcasts a StringMessage
+    println("\nCommunication Scenario 1:")
+    /* What we expect:
+    The Left Hub receives the StringMessage from an invisible source (US), so it sends it to all its peers
+      The Webcam cannot handle the StringMessage, so it says so, and prints the index of the connector sending it (0)
+      The Left SisterPrinter should print the StringMessage and its serialNumber, (4)
+      The Left CannonPrinter should print the StringMessage and its version (13)
+     */
+    hubLeft.recv(sMessage, hubLeft.getConnector(3))
+    // Message Send Scenario 2: HubRight Sends BinaryMessage to Webcam
+    println("Communication Scenario 2:")
+    /* What we expect:
+    The Webcam responds by sending a BinaryMessage (293) on all its connectors
+      The Left Hub sends that BinaryMessage (293) to its other direct peers, Left Sister/CannonPrinter
+        The Left SisterPrinter should print the BinaryMessage (293) plus its productCode(293+9)
+        The Left CannonPrinter should print the BinaryMessage (293) times its serialNumber (293*4)
+      The Right Hub sends that BinaryMessage (293) to its other direct peer, the Right SisterPrinter
+        The Right SisterPrinter should print the BinaryMessage (293) plus its productCode(293+9)
+     */
+    hubRight.communicate(0, bMessage)
+    // Message Send Scenario 3: HubLeft Broadcasts a BinaryMessage
+    println("Communication Scenario 3:")
+    /* What we expect
+    The Left Hub receives the BinaryMessage (1000) from an invisible source (US), so it sends it to all its peers
+      The Webcam responds by sending a BinaryMessage (293) on all its Connectors
+        The Right Hub sends that BinaryMessage (293) to its other direct peer, the Right SisterPrinter
+          The Right Sister Printer prints the BinaryMessage (293) plus its productCode (293+9)
+        The Left Hub sends the Webcam's BinaryMessage (293) to its other direct peers, Left Sister/Cannon Printer
+          The Left SisterPrinter prints the BinaryMessage (293) plus its productCode (293+9)
+          The Left CannonPrinter receives the BinaryMessage (293) prints it times its serialNumber (293*4)
+      The Left SisterPrinter receives the BinaryMessage (1000) and prints it plus its productCode (1000+9)
+      the Left CannonPrinter receives the BinaryMessage (1000) and prints it times its SerialNumber (1000*4)
+     */
+    hubLeft.recv(bMessage, hubLeft.getConnector(3))
+    println("\nUnit testing for UXB Full System Messaging completed with no errors")
   }
 }
