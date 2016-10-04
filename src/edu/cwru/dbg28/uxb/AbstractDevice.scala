@@ -96,9 +96,9 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
     }
   }
 
-  /** Simpler method of communication between devices
+  /** Communicates between devices, if message is valid to send
     *
-    * @param conIndex connector to send message to
+    * @param conIndex connector to send message on
     * @param message message to send
     */
   def communicate(conIndex: Int, message: Message): Unit = {
@@ -198,7 +198,7 @@ abstract class AbstractDevice[A <: AbstractDevice.Builder[A]] private() extends 
     * @return devices that pass the filter function
     */
   private def getFilteredPeers(devicesToFilter: Set[Device], f: Device => Boolean): Set[Device] = {
-    for (dev <- devicesToFilter ; q <- dev.peerDevices if f(q)) yield q
+    for (device <- devicesToFilter ; q <- device.peerDevices if f(q)) yield q
   }
 
   // Constructor -  Initializes class with builder input

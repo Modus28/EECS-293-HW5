@@ -10,9 +10,6 @@ import edu.cwru.dbg28.uxb.DeviceClass.DeviceClass
   * Hub: A specific form of an AbstractDevice
   */
 class Hub[A <: AbstractDevice.Builder[A]] private(builder: Hub.Builder[A]) extends AbstractDevice[A](builder) {
-  // Fields
-  // private final val STRINGMESSAGE_HEADER = "recv not yet supported" // Deprecated
-  // private final val BINARYMESSAGE_HEADER = "recv not yet supported" // Deprecated
 
   // Methods
 

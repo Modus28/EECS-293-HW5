@@ -8,7 +8,7 @@ package edu.cwru.dbg28.uxb
 class ConnectionException(private val errorCode: ConnectionException.ErrorCode.Value,
                           private val connector: Connector) extends Exception {
   private val serialVersionUID = 293
-  println("ConnectionException: " + errorCode) // Intentional: Displays errorcode type when error occurs
+  println("ConnectionException: " + errorCode) // Intentional: Displays error code type when error occurs
 }
 
 object ConnectionException {

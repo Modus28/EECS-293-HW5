@@ -9,6 +9,6 @@ import scala.language.implicitConversions
   * Implicit definition will be stored here
   */
 package object uxb {
-  // Definition to let StringMessage act like a String
+  // Definition: Let StringMessage act like a String, delegates String method calls to String field
   implicit def delegateToValue(d: StringMessage): String = new String(d.getString)
 }

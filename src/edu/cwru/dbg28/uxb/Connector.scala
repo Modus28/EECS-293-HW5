@@ -31,8 +31,8 @@ final class Connector(private val device: Device, private val index: Integer, pr
     */
   def getPeer: Option[Connector] = peer
 
-  /** Sets peer of this connector to input
-    * Sets peer of peer to this
+  /** Sets peer of this connector to input AND
+    * Sets peer of input peer to this
     *
     * @param peer the connector to set as this connector's peer
     */

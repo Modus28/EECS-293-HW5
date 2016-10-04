@@ -18,7 +18,6 @@ object HW3Tester {
   private final val DEFAULT_STRING_MESSAGE = "parser"
   private final val DEFAULT_BINARY_MESSAGE = 1000
   private final val FAIL = false
-  private final val PASS = true
 
   // Methods
 
@@ -26,8 +25,8 @@ object HW3Tester {
   def main(args: Array[String]): Unit = {
     messageTester()
     connectorTest()
-    genericDeviceTester(getDefaultDevices)
-    communicationDeviceSetup(getDefaultDevices)
+    genericDeviceTester(createDeviceList)
+    communicationDeviceSetup(createDeviceList)
     testUXBSystem()
   }
 
@@ -89,7 +88,7 @@ object HW3Tester {
 
   // Testing Connector -- Line Order important
   private def connectorTest(): Unit = {
-    val tempD = getDefaultDevices(2)
+    val tempD = createDeviceList(2)
     val conn1 = new Connector(tempD, 3, Connector.Type.PERIPHERAL)
     assert(conn1.getDevice.equals(tempD)) // getDevice returns right device
     assert(conn1.getIndex.equals(3)) // getIndex gets the index
@@ -109,8 +108,8 @@ object HW3Tester {
   }
 
   // Gets a List of each concrete devices initialized to default parameters
-  // Indexes of return List: 0: CannonPrinter, 1: GoAmateur, 2: SisterPrinter, 3: Hub
-  private def getDefaultDevices[A <: AbstractDevice.Builder[A]]: List[AbstractDevice[Nothing]] = {
+  // Device Type for indexes of return List: 0: CannonPrinter, 1: GoAmateur, 2: SisterPrinter, 3: Hub
+  private def createDeviceList[A <: AbstractDevice.Builder[A]]: List[AbstractDevice[Nothing]] = {
     val listOfConcreteDeviceBuilders = List(new CannonPrinter.Builder(DEFAULT_VERSION),
       new GoAmateur.Builder(DEFAULT_VERSION), new SisterPrinter.Builder(DEFAULT_VERSION),
       new Hub.Builder(DEFAULT_VERSION))
@@ -138,16 +137,16 @@ object HW3Tester {
   }
 
   // Broadcast: Helper method to test communications for a list of Devices and Messages
-  private def testCommunications(devList: List[Device], messList: List[Message]): Unit = {
+  private def testCommunications(deviceList: List[Device], messageList: List[Message]): Unit = {
     // Specific method for sending one of each message to one of each concrete device
     def broadcast(): Unit = {
       // Capture STDOUT
       val stream = new java.io.ByteArrayOutputStream()
       Console.withOut(stream) {
         //all println in this block will be redirected
-        for (mess <- messList) {
-          for (dev <- devList) {
-            dev.recv(mess, dev.getConnector(0))
+        for (message <- messageList) {
+          for (device <- deviceList) {
+            device.recv(message, device.getConnector(0))
           }
         }
       }
@@ -157,8 +156,8 @@ object HW3Tester {
     broadcast()
 
     // Testing simplified communicate message.
-    val d1 = getDefaultDevices(1)
-    val d2 = getDefaultDevices(2)
+    val d1 = createDeviceList(1)
+    val d2 = createDeviceList(2)
     Console.withOut(new java.io.ByteArrayOutputStream()) { // Block Connection Reason print out
       try {
         d1.getConnector(0).setPeer(d1.getConnector(0)) // Should throw a CONNECTOR_CYCLE exception
@@ -185,14 +184,16 @@ object HW3Tester {
   }
 
   // Tests the entire UXB system as a whole
+  // I added an image of the device system in my submission
+  // Also at: http://i.imgur.com/XFJIMY8.png
   private def testUXBSystem(): Unit = {
     // Create Devices, Unconnected
-    val hubLeft = getDefaultDevices(3)
-    val hubRight = getDefaultDevices(3)
-    val webCamCenter = getDefaultDevices(1)
-    val sisterPrinterLeft = getDefaultDevices(2)
-    val sisterPrinterRight = getDefaultDevices(2)
-    val cannonPrinterLeft = getDefaultDevices.head
+    val hubLeft = createDeviceList(3)
+    val hubRight = createDeviceList(3)
+    val webCamCenter = createDeviceList(1)
+    val sisterPrinterLeft = createDeviceList(2)
+    val sisterPrinterRight = createDeviceList(2)
+    val cannonPrinterLeft = createDeviceList.head
     // Create Messages
     val bMessage = new BinaryMessage(DEFAULT_BINARY_MESSAGE)
     val sMessage = new StringMessage(DEFAULT_STRING_MESSAGE)
